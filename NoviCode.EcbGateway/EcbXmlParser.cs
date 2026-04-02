@@ -49,7 +49,7 @@ public static class EcbXmlParser
             });
         }
 
-        items.Add(new EcbRate { Currency = "EUR", Rate = 1m });
+        EnsureEuroBaseRate(items);
 
         return new EcbRatesResponse
         {
@@ -57,5 +57,14 @@ public static class EcbXmlParser
             BaseCurrency = "EUR",
             Rates = items,
         };
+    }
+
+    private static void EnsureEuroBaseRate(List<EcbRate> items)
+    {
+        const string eur = "EUR";
+        if (items.Exists(r => string.Equals(r.Currency, eur, StringComparison.Ordinal)))
+            return;
+
+        items.Add(new EcbRate { Currency = eur, Rate = 1m });
     }
 }

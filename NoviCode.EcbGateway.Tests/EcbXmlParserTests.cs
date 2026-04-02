@@ -1,4 +1,5 @@
 using NoviCode.Application.Exceptions;
+using NoviCode.EcbGateway;
 using Xunit;
 
 namespace NoviCode.EcbGateway.Tests;
@@ -54,6 +55,26 @@ public class EcbXmlParserTests
         var result = EcbXmlParser.Parse(xml);
 
         Assert.Single(result.Rates, r => r.Currency == "CHF");
+        Assert.Single(result.Rates, r => r.Currency == "EUR");
+    }
+
+    [Fact]
+    public void Parse_whenXmlAlreadyContainsEur_doesNotAddDuplicateEur()
+    {
+        const string xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <root xmlns="http://www.ecb.int/vocabulary/2002-08-01/eurofxref">
+              <Cube>
+                <Cube time="2024-06-01">
+                  <Cube currency="EUR" rate="1"/>
+                  <Cube currency="USD" rate="1.08"/>
+                </Cube>
+              </Cube>
+            </root>
+            """;
+
+        var result = EcbXmlParser.Parse(xml);
+
         Assert.Single(result.Rates, r => r.Currency == "EUR");
     }
 

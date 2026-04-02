@@ -8,5 +8,8 @@ namespace NoviCode.EcbGateway
 
         public const int DefaultTimeoutSeconds = 30;
         public int TimeoutSeconds { get; set; } = DefaultTimeoutSeconds;
+
+        public const int DefaultRetryCount = 3;
+        public int RetryCount { get; set; } = DefaultRetryCount;
     }
 }
