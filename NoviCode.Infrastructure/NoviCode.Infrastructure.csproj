@@ -1,9 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\NoviCode.Domain\NoviCode.Domain.csproj" />
     <ProjectReference Include="..\NoviCode.Application\NoviCode.Application.csproj" />
-    <ProjectReference Include="..\NoviCode.EcbGateway\NoviCode.EcbGateway.csproj" />
   </ItemGroup>
 
   <ItemGroup>

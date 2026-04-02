@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NoviCode.Application\NoviCode.Application.csproj" />
+    <ProjectReference Include="..\NoviCode.EcbGateway\NoviCode.EcbGateway.csproj" />
     <ProjectReference Include="..\NoviCode.Infrastructure\NoviCode.Infrastructure.csproj" />
   </ItemGroup>
 
