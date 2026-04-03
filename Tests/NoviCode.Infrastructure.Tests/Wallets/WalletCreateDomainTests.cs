@@ -1,0 +1,46 @@
+using NoviCode.Domain.Entities;
+using NoviCode.Domain.Exceptions;
+using Xunit;
+
+namespace NoviCode.Infrastructure.Tests.Wallets;
+
+public sealed class WalletCreateDomainTests
+{
+    [Fact]
+    public void Create_with_valid_currency_normalizes_to_uppercase_and_sets_balance()
+    {
+        var wallet = Wallet.Create("eur", 100m);
+
+        Assert.Equal("EUR", wallet.Currency);
+        Assert.Equal(100m, wallet.Balance);
+    }
+
+    [Fact]
+    public void Create_with_zero_initial_balance_succeeds()
+    {
+        var wallet = Wallet.Create("USD", 0m);
+
+        Assert.Equal("USD", wallet.Currency);
+        Assert.Equal(0m, wallet.Balance);
+    }
+
+    [Fact]
+    public void Create_with_negative_balance_throws_DomainValidationException()
+    {
+        var ex = Assert.Throws<DomainValidationException>(() => Wallet.Create("EUR", -200m));
+
+        Assert.Contains("negative", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Create_with_empty_currency_throws_DomainValidationException()
+    {
+        Assert.Throws<DomainValidationException>(() => Wallet.Create("  ", 0m));
+    }
+
+    [Fact]
+    public void Create_with_invalid_currency_length_throws_DomainValidationException()
+    {
+        Assert.Throws<DomainValidationException>(() => Wallet.Create("US", 0m));
+    }
+}
