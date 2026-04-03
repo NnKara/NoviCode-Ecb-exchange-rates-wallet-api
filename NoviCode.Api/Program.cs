@@ -2,9 +2,11 @@ using Microsoft.EntityFrameworkCore;
 using NoviCode.Api.ExceptionHandling;
 using NoviCode.Api.Workers;
 using NoviCode.Application.ExchangeRates.Interfaces;
+using NoviCode.Application.Wallets.Interfaces;
 using NoviCode.EcbGateway;
 using NoviCode.Infrastructure.Data;
 using NoviCode.Infrastructure.ExchangeRates;
+using NoviCode.Infrastructure.Wallets;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IExchangeRatesBulkWriter, ExchangeRatesBulkWriter>();
 builder.Services.AddHostedService<ExchangeRatesSyncWorker>();
+builder.Services.AddScoped<IWalletService, WalletService>();
 
 var app = builder.Build();
 

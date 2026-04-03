@@ -9,6 +9,7 @@ namespace NoviCode.Infrastructure.Data
         
 
         public DbSet<ExchangeRate> ExchangeRates => Set<ExchangeRate>();
+        public DbSet<Wallet> Wallets => Set<Wallet>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
