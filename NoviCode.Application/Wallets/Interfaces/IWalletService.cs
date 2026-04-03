@@ -5,5 +5,7 @@ namespace NoviCode.Application.Wallets.Interfaces
     public interface IWalletService
     {
         Task<CreateWalletResponse> CreateAsync(CreateWalletRequest request, CancellationToken cancellationToken = default);
+
+        Task<GetWalletBalanceResponse> GetBalanceAsync(long walletId, string? currency, CancellationToken cancellationToken = default);
     }
 }
