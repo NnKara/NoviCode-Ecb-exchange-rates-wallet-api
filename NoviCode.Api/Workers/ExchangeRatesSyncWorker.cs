@@ -8,7 +8,7 @@ namespace NoviCode.Api.Workers
     {
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<ExchangeRatesSyncWorker> _logger;
-        public ExchangeRatesSyncWorker(IServiceScopeFactory scopeFactory,ILogger<ExchangeRatesSyncWorker> logger)
+        public ExchangeRatesSyncWorker(IServiceScopeFactory scopeFactory, ILogger<ExchangeRatesSyncWorker> logger)
         {
             _scopeFactory = scopeFactory;
             _logger = logger;
@@ -29,6 +29,8 @@ namespace NoviCode.Api.Workers
                     var rows = EcbRatesToExchangeRows.MapToRows(ratesResponse);
 
                     await bulkWriter.MergeAsync(rows, cancellationToken);
+
+                    _logger.LogInformation("ECB exchange rates sync completed. {RowCount} row(s) merged.",rows.Count);
                 }
                 catch (Exception ex)
                 {

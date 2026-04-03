@@ -39,9 +39,10 @@ public sealed class ExchangeRatesBulkWriter : IExchangeRatesBulkWriter
 
                 var sql = BuildMergeSql(batch, out var parameters);
 
-                await using var cmd = new SqlCommand(sql, connection, (SqlTransaction)transaction);
-                cmd.Parameters.AddRange(parameters);
-                await cmd.ExecuteNonQueryAsync(cancellationToken);
+                await using var sqlCommand = new SqlCommand(sql, connection, (SqlTransaction)transaction);
+
+                sqlCommand.Parameters.AddRange(parameters);
+                await sqlCommand.ExecuteNonQueryAsync(cancellationToken);
             }
 
             await transaction.CommitAsync(cancellationToken);
