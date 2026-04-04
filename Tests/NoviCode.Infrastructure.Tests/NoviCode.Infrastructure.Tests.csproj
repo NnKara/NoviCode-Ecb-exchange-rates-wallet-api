@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\NoviCode.Application\NoviCode.Application.csproj" />
     <ProjectReference Include="..\..\NoviCode.Domain\NoviCode.Domain.csproj" />
     <ProjectReference Include="..\..\NoviCode.Infrastructure\NoviCode.Infrastructure.csproj" />
   </ItemGroup>
