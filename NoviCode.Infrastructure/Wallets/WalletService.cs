@@ -42,7 +42,6 @@ namespace NoviCode.Infrastructure.Wallets
             if (wallet is null)
                 throw new NotFoundException($"Wallet {walletId} was not found.");
 
-            //alread trimmed
             var walletCurrency = wallet.Currency;
 
             if (string.IsNullOrWhiteSpace(currency))
