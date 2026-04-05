@@ -23,6 +23,8 @@ public sealed class WalletService : IWalletService
         var wallet = Wallet.Create(request.Currency, request.InitialBalance);
 
         _dbContext.Wallets.Add(wallet);
+
+        
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return new CreateWalletResponse
@@ -101,7 +103,14 @@ public sealed class WalletService : IWalletService
         var adjustmentStrategy = _strategyResolver.Resolve(strategy);
         adjustmentStrategy.Apply(wallet, amountInWalletCurrency);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new ConcurrencyException("The wallet was modified by another request. Please retry.",ex);
+        }
 
         return new AdjustWalletBalanceResponse
         {

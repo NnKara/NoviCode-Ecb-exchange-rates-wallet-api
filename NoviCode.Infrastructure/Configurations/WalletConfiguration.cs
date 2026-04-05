@@ -16,6 +16,8 @@ namespace NoviCode.Infrastructure.Configurations
             builder.Property(x => x.Balance).HasPrecision(18,2).IsRequired();
 
             builder.Property(x => x.Currency).HasColumnType("char(3)").IsRequired();
+
+            builder.Property(x => x.RowVersion).IsRowVersion().IsRequired();
         }
     }
 }

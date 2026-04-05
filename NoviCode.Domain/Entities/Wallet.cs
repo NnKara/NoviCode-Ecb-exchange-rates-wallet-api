@@ -9,6 +9,7 @@ public sealed class Wallet
     public long Id { get; private set; }
     public decimal Balance { get; private set; }
     public string Currency { get; private set; } = default!;
+    public byte[] RowVersion { get; set; } = default!;
 
     public static Wallet Create(string currency, decimal initialBalance = 0)
     {

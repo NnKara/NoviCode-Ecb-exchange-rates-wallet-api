@@ -14,6 +14,7 @@ public static class ExceptionMapper
             DomainValidationException ex => new(400, "Bad Request", ex.Message),
             InsufficientFundsException ex => new(ex.StatusCode, "Insufficient funds", ex.Message),
             ExternalServiceException ex => new(ex.StatusCode, "Bad Gateway", ex.Message),
+            ConcurrencyException ex => new(ex.StatusCode, "Conflict", ex.Message),
             AppException ex => new(ex.StatusCode, "Error", ex.Message),
             _ => new(500, "Server Error", "An unexpected error occurred."),
         };
