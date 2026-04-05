@@ -42,4 +42,15 @@ public sealed class Wallet
 
         Balance += amount;
     }
+
+    public void SubtractFunds(decimal amount)
+    {
+        if (amount <= 0)
+            throw new DomainValidationException("Amount must be positive.");
+
+        if (Balance < amount)
+            throw new DomainValidationException("Insufficient funds.");
+
+        Balance -= amount;
+    }
 }

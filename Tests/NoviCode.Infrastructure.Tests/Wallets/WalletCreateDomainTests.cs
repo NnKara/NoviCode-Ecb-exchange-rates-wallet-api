@@ -43,4 +43,32 @@ public sealed class WalletCreateDomainTests
     {
         Assert.Throws<DomainValidationException>(() => Wallet.Create("US", 0m));
     }
+
+    [Fact]
+    public void SubtractFunds_reduces_balance()
+    {
+        var wallet = Wallet.Create("EUR", 100m);
+
+        wallet.SubtractFunds(30m);
+
+        Assert.Equal(70m, wallet.Balance);
+    }
+
+    [Fact]
+    public void SubtractFunds_when_insufficient_throws_DomainValidationException()
+    {
+        var wallet = Wallet.Create("EUR", 10m);
+
+        var ex = Assert.Throws<DomainValidationException>(() => wallet.SubtractFunds(20m));
+
+        Assert.Contains("Insufficient", ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SubtractFunds_with_non_positive_amount_throws_DomainValidationException()
+    {
+        var wallet = Wallet.Create("EUR", 50m);
+
+        Assert.Throws<DomainValidationException>(() => wallet.SubtractFunds(0m));
+    }
 }

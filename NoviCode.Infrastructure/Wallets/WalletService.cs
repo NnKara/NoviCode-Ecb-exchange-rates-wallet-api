@@ -137,7 +137,7 @@ public sealed class WalletService : IWalletService
         if (fromCurrency == "EUR")
             return amount;
 
-        return amount / GetEurToTargetRate(rates, fromCurrency);
+         return amount / GetEurToTargetRate(rates, fromCurrency);
     }
 
     private static decimal GetEurToTargetRate(IReadOnlyList<ExchangeRate> rates, string targetCode)
