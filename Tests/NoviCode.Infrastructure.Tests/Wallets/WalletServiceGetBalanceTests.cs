@@ -22,7 +22,7 @@ public sealed class WalletServiceGetBalanceTests
     public async Task GetBalanceAsync_wallet_missing_throws_NotFoundException()
     {
         await using var db = CreateInMemoryDbContext();
-        var walletService = new WalletService(db);
+        var walletService = new WalletService(db, new WalletBalanceAdjustmentStrategyResolver());
 
         await Assert.ThrowsAsync<NotFoundException>(() =>
             walletService.GetBalanceAsync(999L, null));
@@ -32,7 +32,7 @@ public sealed class WalletServiceGetBalanceTests
     public async Task GetBalanceAsync_without_currency_returns_stored_balance()
     {
         await using var db = CreateInMemoryDbContext();
-        var walletService = new WalletService(db);
+        var walletService = new WalletService(db, new WalletBalanceAdjustmentStrategyResolver());
         var id = await CreateWalletAsync(db, "EUR", 125.50m);
 
         var result = await walletService.GetBalanceAsync(id, null);
@@ -46,7 +46,7 @@ public sealed class WalletServiceGetBalanceTests
     public async Task GetBalanceAsync_same_currency_as_wallet_does_not_require_rates()
     {
         await using var db = CreateInMemoryDbContext();
-        var walletService = new WalletService(db);
+        var walletService = new WalletService(db, new WalletBalanceAdjustmentStrategyResolver());
         var id = await CreateWalletAsync(db, "USD", 40m);
 
         var result = await walletService.GetBalanceAsync(id, "usd");
@@ -69,7 +69,7 @@ public sealed class WalletServiceGetBalanceTests
 
         await db.SaveChangesAsync();
 
-        var walletService = new WalletService(db);
+        var walletService = new WalletService(db, new WalletBalanceAdjustmentStrategyResolver());
         var id = await CreateWalletAsync(db, "USD", 100m);
 
         var result = await walletService.GetBalanceAsync(id, "GBP");
@@ -84,7 +84,7 @@ public sealed class WalletServiceGetBalanceTests
     public async Task GetBalanceAsync_conversion_when_no_rates_throws_ValidationException()
     {
         await using var db = CreateInMemoryDbContext();
-        var walletService = new WalletService(db);
+        var walletService = new WalletService(db, new WalletBalanceAdjustmentStrategyResolver());
         var id = await CreateWalletAsync(db, "USD", 10m);
 
         await Assert.ThrowsAsync<ValidationException>(() =>

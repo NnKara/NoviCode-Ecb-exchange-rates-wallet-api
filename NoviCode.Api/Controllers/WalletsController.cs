@@ -37,5 +37,19 @@ namespace NoviCode.Api.Controllers
             var result = await _walletService.GetBalanceAsync(walletId, currency, cancellationToken);
             return Ok(result);
         }
+
+
+        [HttpPost("{walletId:long}/adjustbalance")]
+        [ProducesResponseType(typeof(AdjustWalletBalanceResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<AdjustWalletBalanceResponse>> AdjustBalance([FromRoute] long walletId,[FromQuery] decimal amount,
+                                                                                   [FromQuery] string strategy,
+                                                                                   [FromQuery] string currency,
+                                                                                   CancellationToken cancellationToken)
+        {
+            var result = await _walletService.AdjustBalanceAsync(walletId, amount, currency, strategy, cancellationToken);
+            return Ok(result);
+        }
     }
 }

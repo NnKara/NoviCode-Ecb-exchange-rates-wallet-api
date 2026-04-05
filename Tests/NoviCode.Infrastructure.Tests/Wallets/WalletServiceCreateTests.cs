@@ -23,7 +23,7 @@ public sealed class WalletServiceCreateTests
     public async Task CreateAsync_creates_wallet_and_returns_response()
     {
         await using var db = CreateInMemoryDbContext();
-        var walletService = new WalletService(db);
+        var walletService = new WalletService(db, new WalletBalanceAdjustmentStrategyResolver());
 
         var result = await walletService.CreateAsync(new CreateWalletRequest { Currency = "USD", InitialBalance = 50m });
 

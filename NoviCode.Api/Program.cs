@@ -24,6 +24,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IExchangeRatesBulkWriter, ExchangeRatesBulkWriter>();
 builder.Services.AddHostedService<ExchangeRatesSyncWorker>();
 builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddSingleton<IWalletBalanceAdjustmentStrategyResolver, WalletBalanceAdjustmentStrategyResolver>();
 
 var app = builder.Build();
 

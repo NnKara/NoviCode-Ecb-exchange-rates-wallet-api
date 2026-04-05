@@ -34,4 +34,12 @@ public sealed class Wallet
 
         return trimmedCurrency;
     }
+
+    public void AddFunds(decimal amount)
+    {
+        if (amount <= 0)
+            throw new DomainValidationException("Amount must be positive.");
+
+        Balance += amount;
+    }
 }
