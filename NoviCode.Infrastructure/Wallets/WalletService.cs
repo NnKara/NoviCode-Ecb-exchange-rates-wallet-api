@@ -64,12 +64,12 @@ public sealed class WalletService : IWalletService
             };
         }
 
-        var converted = await ConvertAsync(wallet.Balance,walletCurrency,targetCurrency,cancellationToken);
+        var convertedBalance = await ConvertAsync(wallet.Balance,walletCurrency,targetCurrency,cancellationToken);
 
         return new GetWalletBalanceResponse
         {
             WalletId = wallet.Id,
-            Balance = converted,
+            Balance = convertedBalance,
             Currency = targetCurrency
         };
     }
@@ -79,8 +79,7 @@ public sealed class WalletService : IWalletService
         if (amount <= 0)
             throw new ValidationException("Amount must be positive.");
 
-        var wallet = await _dbContext.Wallets
-            .FirstOrDefaultAsync(x => x.Id == walletId, cancellationToken);
+        var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(x => x.Id == walletId, cancellationToken);
 
         if (wallet is null)
             throw new NotFoundException($"Wallet {walletId} was not found.");
@@ -96,11 +95,7 @@ public sealed class WalletService : IWalletService
         }
         else
         {
-            amountInWalletCurrency = await ConvertAsync(
-                amount,
-                requestCurrency,
-                walletCurrency,
-                cancellationToken);
+            amountInWalletCurrency = await ConvertAsync(amount,requestCurrency,walletCurrency,cancellationToken);
         }
 
         var adjustmentStrategy = _strategyResolver.Resolve(strategy);
@@ -122,9 +117,17 @@ public sealed class WalletService : IWalletService
 
         var amountInEur = ToEurAmount(amount, fromCurrency, rates);
 
-        var converted = toCurrency == "EUR"
-            ? amountInEur
-            : amountInEur * GetEurToTargetRate(rates, toCurrency);
+        decimal converted;
+
+        if (toCurrency == "EUR")
+        {
+            converted = amountInEur;
+        }
+        else
+        {
+            var rate = GetEurToTargetRate(rates, toCurrency);
+            converted = amountInEur * rate;
+        }
 
         return Math.Round(converted, 2, MidpointRounding.ToEven);
     }
@@ -142,8 +145,7 @@ public sealed class WalletService : IWalletService
         if (targetCode == "EUR")
             return 1m;
 
-        var row = rates.FirstOrDefault(x =>
-            string.Equals(x.TargetCurrency.Trim(), targetCode, StringComparison.OrdinalIgnoreCase));
+        var row = rates.FirstOrDefault(x => string.Equals(x.TargetCurrency.Trim(), targetCode, StringComparison.OrdinalIgnoreCase));
 
         if (row is null)
             throw new ValidationException($"Missing exchange rate for {targetCode}.");
