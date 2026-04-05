@@ -71,4 +71,32 @@ public sealed class WalletCreateDomainTests
 
         Assert.Throws<DomainValidationException>(() => wallet.SubtractFunds(0m));
     }
+
+    [Fact]
+    public void ForceSubtractFunds_can_result_in_negative_balance()
+    {
+        var wallet = Wallet.Create("EUR", 10m);
+
+        wallet.ForceSubtractFunds(25m);
+
+        Assert.Equal(-15m, wallet.Balance);
+    }
+
+    [Fact]
+    public void ForceSubtractFunds_reduces_balance_when_sufficient()
+    {
+        var wallet = Wallet.Create("USD", 100m);
+
+        wallet.ForceSubtractFunds(40m);
+
+        Assert.Equal(60m, wallet.Balance);
+    }
+
+    [Fact]
+    public void ForceSubtractFunds_with_non_positive_amount_throws_DomainValidationException()
+    {
+        var wallet = Wallet.Create("EUR", 5m);
+
+        Assert.Throws<DomainValidationException>(() => wallet.ForceSubtractFunds(0m));
+    }
 }
