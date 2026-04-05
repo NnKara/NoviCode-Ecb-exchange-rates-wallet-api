@@ -53,4 +53,12 @@ public sealed class Wallet
 
         Balance -= amount;
     }
+
+    public void ForceSubtractFunds(decimal amount)
+    {
+        if (amount <= 0)
+            throw new DomainValidationException("Amount must be positive.");
+
+        Balance -= amount;
+    }
 }

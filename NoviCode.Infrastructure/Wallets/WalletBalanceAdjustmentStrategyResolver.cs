@@ -10,6 +10,7 @@ namespace NoviCode.Infrastructure.Wallets
     {
         private static readonly AddFundsStrategy AddFunds = new();
         private static readonly SubtractFundsStrategy SubtractFunds = new();
+        private static readonly ForceSubtractFundsStrategy ForceSubtractFunds = new();
 
         public IWalletBalanceAdjustmentStrategy Resolve(string strategyName)
         {
@@ -24,7 +25,10 @@ namespace NoviCode.Infrastructure.Wallets
             if (strategy == WalletBalanceStrategyNames.SubtractFunds)
                 return SubtractFunds;
 
-            throw new ValidationException($"Unsupported strategy '{strategyName}'.");
+            if (strategy == WalletBalanceStrategyNames.ForceSubtractFunds)
+                return ForceSubtractFunds;
+
+                throw new ValidationException($"Unsupported strategy '{strategyName}'.");
         }
 
     }

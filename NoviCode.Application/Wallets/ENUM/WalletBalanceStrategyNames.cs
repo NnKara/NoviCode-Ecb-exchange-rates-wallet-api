@@ -8,8 +8,8 @@ namespace NoviCode.Application.Wallets.ENUM
 {
     public static class WalletBalanceStrategyNames
     {
-        public const string AddFunds = "AddFundsStrategy";
-        public const string SubtractFunds = "SubtractFundsStrategy";
-        public const string ForceSubtractFunds = "ForceSubtractFundsStrategy";
+        public const string AddFunds = "AddFunds";
+        public const string SubtractFunds = "SubtractFunds";
+        public const string ForceSubtractFunds = "ForceSubtractFunds";
     }
 }
