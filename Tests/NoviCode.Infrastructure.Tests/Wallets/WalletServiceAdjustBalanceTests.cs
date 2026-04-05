@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using NoviCode.Application.Wallets.ENUM;
+using NoviCode.Application.Wallets.WalletBalanceStrategyKinds;
 using NoviCode.Domain.Entities;
 using NoviCode.Domain.Exceptions;
 using NoviCode.Infrastructure.Data;

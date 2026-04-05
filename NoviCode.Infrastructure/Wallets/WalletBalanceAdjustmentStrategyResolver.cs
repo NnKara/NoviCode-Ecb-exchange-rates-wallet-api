@@ -1,5 +1,5 @@
 ﻿using NoviCode.Application.Exceptions;
-using NoviCode.Application.Wallets.ENUM;
+using NoviCode.Application.Wallets.WalletBalanceStrategyKinds;
 using NoviCode.Application.Wallets.Interfaces;
 using NoviCode.Application.Wallets.WalletBalanceStrategies;
 
