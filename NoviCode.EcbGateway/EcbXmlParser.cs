@@ -9,62 +9,99 @@ public static class EcbXmlParser
 {
     public static EcbRatesResponse Parse(string xml)
     {
-        XDocument doc;
+        var document = ParseDocument(xml);
+        var timeCube = GetTimeCube(document);
+        var rateDate = GetRateDate(timeCube);
+        var rates = GetRates(timeCube);
 
-        try
-        {
-            doc = XDocument.Parse(xml);
-        }
-        catch (Exception ex)
-        {
-            throw new ExternalServiceException("ECB response is not valid XML.", ex);
-        }
-
-        var timeCube = doc.Descendants().FirstOrDefault(e => e.Name.LocalName == "Cube" && e.Attribute("time") is not null);
-
-        var timeValue = timeCube?.Attribute("time")?.Value;
-
-        if (string.IsNullOrWhiteSpace(timeValue) || !DateOnly.TryParse(timeValue, CultureInfo.InvariantCulture, DateTimeStyles.None, out var rateDate))
-        {
-            throw new ExternalServiceException("ECB XML does not contain a valid cube.");
-        }
-
-        var items = new List<EcbRate>();
-
-        foreach (var cube in timeCube!.Elements().Where(e => e.Name.LocalName == "Cube"))
-        {
-            var currency = cube.Attribute("currency")?.Value;
-            var rateRaw = cube.Attribute("rate")?.Value;
-
-            if (string.IsNullOrWhiteSpace(currency) || string.IsNullOrWhiteSpace(rateRaw))
-                continue;
-
-            if (!decimal.TryParse(rateRaw, NumberStyles.Number, CultureInfo.InvariantCulture, out var rate))
-                throw new ExternalServiceException($"Invalid rate for currency '{currency}'.");
-
-            items.Add(new EcbRate
-            {
-                Currency = currency.Trim().ToUpperInvariant(),
-                Rate = rate,
-            });
-        }
-
-        EnsureEuroBaseRate(items);
+        EnsureEuroBaseRate(rates);
 
         return new EcbRatesResponse
         {
             RateDate = rateDate,
             BaseCurrency = "EUR",
-            Rates = items,
+            Rates = rates
         };
     }
 
-    private static void EnsureEuroBaseRate(List<EcbRate> items)
+    private static XDocument ParseDocument(string xml)
+    {
+        try
+        {
+            return XDocument.Parse(xml);
+        }
+        catch (Exception ex)
+        {
+            throw new ExternalServiceException("ECB response is not valid XML.", ex);
+        }
+    }
+
+    private static XElement GetTimeCube(XDocument document)
+    {
+        var timeCube = document.Descendants().FirstOrDefault(x => x.Name.LocalName == "Cube" && x.Attribute("time") is not null);
+
+        if (timeCube is null)
+            throw new ExternalServiceException("ECB XML does not contain a valid time cube.");
+
+        return timeCube;
+    }
+
+    private static DateOnly GetRateDate(XElement timeCube)
+    {
+        var rawDate = timeCube.Attribute("time")?.Value;
+
+        if (!DateOnly.TryParse(rawDate,CultureInfo.InvariantCulture,DateTimeStyles.None,out var rateDate))
+        {
+            throw new ExternalServiceException("ECB XML does not contain a valid rate date.");
+        }
+
+        return rateDate;
+    }
+
+    private static List<EcbRate> GetRates(XElement timeCube)
+    {
+        var rates = new List<EcbRate>();
+
+        foreach (var rateCube in timeCube.Elements().Where(x => x.Name.LocalName == "Cube"))
+        {
+            var rate = ParseRate(rateCube);
+
+            if (rate is not null)
+                rates.Add(rate);
+        }
+
+        return rates;
+    }
+
+    private static EcbRate? ParseRate(XElement rateCube)
+    {
+        var currency = rateCube.Attribute("currency")?.Value;
+        var rawRate = rateCube.Attribute("rate")?.Value;
+
+        if (string.IsNullOrWhiteSpace(currency) || string.IsNullOrWhiteSpace(rawRate))
+            return null;
+
+        if (!decimal.TryParse(rawRate, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsedRate))
+            throw new ExternalServiceException($"Invalid rate for currency '{currency}'.");
+
+        return new EcbRate
+        {
+            Currency = currency.Trim().ToUpperInvariant(),
+            Rate = parsedRate
+        };
+    }
+
+    private static void EnsureEuroBaseRate(List<EcbRate> rates)
     {
         const string eur = "EUR";
-        if (items.Exists(r => string.Equals(r.Currency, eur, StringComparison.Ordinal)))
+
+        if (rates.Exists(x => string.Equals(x.Currency, eur, StringComparison.Ordinal)))
             return;
 
-        items.Add(new EcbRate { Currency = eur, Rate = 1m });
+        rates.Add(new EcbRate
+        {
+            Currency = eur,
+            Rate = 1m
+        });
     }
 }
