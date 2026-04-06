@@ -1,6 +1,8 @@
 ﻿using NoviCode.Application.EcbCurrenciesRate;
+using NoviCode.Application.ExchangeRates.Caching;
 using NoviCode.Application.ExchangeRates.Helpers;
 using NoviCode.Application.ExchangeRates.Interfaces;
+using System.Globalization;
 
 namespace NoviCode.Api.Workers
 {
@@ -30,7 +32,22 @@ namespace NoviCode.Api.Workers
 
                     await bulkWriter.MergeAsync(rows, cancellationToken);
 
-                    _logger.LogInformation("ECB exchange rates sync completed. {RowCount} row(s) merged.",rows.Count);
+                    var cache = scope.ServiceProvider.GetRequiredService<IExchangeRatesCache>();
+
+                    var latestRatesSnapshot = new LatestRatesSnapshotDto
+                    {
+                        RateDate = ratesResponse.RateDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                        BaseCurrency = ratesResponse.BaseCurrency,
+                        Rates = ratesResponse.Rates.Select(r => new RateItemDto
+                        {
+                            TargetCurrency = r.Currency,
+                            Rate = r.Rate
+                        }).ToList()
+                    };
+
+                    await cache.SetLatestEurAsync(latestRatesSnapshot, cancellationToken);
+
+                    _logger.LogInformation("ECB exchange rates sync completed. {RowCount} row(s) merged.", rows.Count);
                 }
                 catch (Exception ex)
                 {

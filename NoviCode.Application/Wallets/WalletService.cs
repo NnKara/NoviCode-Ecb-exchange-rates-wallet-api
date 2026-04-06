@@ -42,7 +42,8 @@ public sealed class WalletService : IWalletService
             throw new NotFoundException($"Wallet {walletId} was not found.");
 
         var walletCurrency = wallet.Currency;
-
+        
+        //same currency so returns same balance in EUR
         if (string.IsNullOrWhiteSpace(currency))
         {
             return new GetWalletBalanceResponse
@@ -55,6 +56,7 @@ public sealed class WalletService : IWalletService
 
         var targetCurrency = Wallet.NormalizeCurrencyCode(currency);
 
+        //if not null currency but same requested currency return same balance
         if (targetCurrency == walletCurrency)
         {
             return new GetWalletBalanceResponse
@@ -146,8 +148,7 @@ public sealed class WalletService : IWalletService
         if (targetCode == "EUR")
             return 1m;
 
-        var row = rates.FirstOrDefault(x =>
-            string.Equals(x.TargetCurrency.Trim(), targetCode, StringComparison.OrdinalIgnoreCase));
+        var row = rates.FirstOrDefault(x => string.Equals(x.TargetCurrency.Trim(), targetCode, StringComparison.OrdinalIgnoreCase));
 
         if (row is null)
             throw new ValidationException($"Missing exchange rate for {targetCode}.");

@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using NoviCode.Application.Exceptions;
 using NoviCode.Application.Wallets;
 using NoviCode.Application.Wallets.WalletBalanceStrategyKinds;
 using NoviCode.Domain.Entities;
-using NoviCode.Domain.Exceptions;
 using NoviCode.Infrastructure.Data;
 using NoviCode.Infrastructure.ExchangeRates;
 using NoviCode.Infrastructure.Repositories;
@@ -37,7 +37,7 @@ public sealed class WalletServiceAdjustBalanceTests
     }
 
     [Fact]
-    public async Task AdjustBalanceAsync_subtract_when_insufficient_throws_DomainValidationException()
+    public async Task AdjustBalanceAsync_subtract_when_insufficient_throws_InsufficientFundsException()
     {
         await using var db = CreateInMemoryDbContext();
         var sut = new WalletService(
@@ -46,7 +46,7 @@ public sealed class WalletServiceAdjustBalanceTests
             new WalletBalanceAdjustmentStrategyResolver());
         var id = await CreateWalletAsync(db, "USD", 10m);
 
-        await Assert.ThrowsAsync<DomainValidationException>(() =>
+        await Assert.ThrowsAsync<InsufficientFundsException>(() =>
             sut.AdjustBalanceAsync(id,50m,"USD",WalletBalanceStrategyNames.SubtractFunds,CancellationToken.None));
     }
 

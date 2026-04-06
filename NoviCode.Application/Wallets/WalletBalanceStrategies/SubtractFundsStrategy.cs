@@ -9,7 +9,7 @@ namespace NoviCode.Application.Wallets.WalletBalanceStrategies
         public void Apply(Wallet wallet, decimal amountInWalletCurrency)
         {
             if (wallet.Balance < amountInWalletCurrency)
-                throw new InsufficientFundsException($"Insufficient funds. Available: {wallet.Balance} {wallet.Currency}, required: {amountInWalletCurrency}.");
+                throw new InsufficientFundsException($"Insufficient funds.");
 
             wallet.SubtractFunds(amountInWalletCurrency);
         }
