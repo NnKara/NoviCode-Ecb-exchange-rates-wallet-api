@@ -1,8 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using NoviCode.Application.Wallets;
 using NoviCode.Application.Wallets.WalletBalanceStrategyKinds;
 using NoviCode.Domain.Entities;
 using NoviCode.Domain.Exceptions;
 using NoviCode.Infrastructure.Data;
+using NoviCode.Infrastructure.ExchangeRates;
+using NoviCode.Infrastructure.Repositories;
 using NoviCode.Infrastructure.Wallets;
 using Xunit;
 
@@ -23,7 +26,7 @@ public sealed class WalletServiceAdjustBalanceTests
     public async Task AdjustBalanceAsync_subtract_reduces_balance_in_wallet_currency()
     {
         await using var db = CreateInMemoryDbContext();
-        var sut = new WalletService(db, new WalletBalanceAdjustmentStrategyResolver());
+        var sut = new WalletService(new WalletRepository(db),new LatestEurExchangeRatesReader(db),new WalletBalanceAdjustmentStrategyResolver());
         var id = await CreateWalletAsync(db, "USD", 100m);
 
         var result = await sut.AdjustBalanceAsync(id,30m,"USD",WalletBalanceStrategyNames.SubtractFunds,CancellationToken.None);
@@ -37,7 +40,10 @@ public sealed class WalletServiceAdjustBalanceTests
     public async Task AdjustBalanceAsync_subtract_when_insufficient_throws_DomainValidationException()
     {
         await using var db = CreateInMemoryDbContext();
-        var sut = new WalletService(db, new WalletBalanceAdjustmentStrategyResolver());
+        var sut = new WalletService(
+            new WalletRepository(db),
+            new LatestEurExchangeRatesReader(db),
+            new WalletBalanceAdjustmentStrategyResolver());
         var id = await CreateWalletAsync(db, "USD", 10m);
 
         await Assert.ThrowsAsync<DomainValidationException>(() =>
@@ -48,7 +54,10 @@ public sealed class WalletServiceAdjustBalanceTests
     public async Task AdjustBalanceAsync_force_subtract_allows_negative_balance()
     {
         await using var db = CreateInMemoryDbContext();
-        var sut = new WalletService(db, new WalletBalanceAdjustmentStrategyResolver());
+        var sut = new WalletService(
+            new WalletRepository(db),
+            new LatestEurExchangeRatesReader(db),
+            new WalletBalanceAdjustmentStrategyResolver());
         var id = await CreateWalletAsync(db, "EUR", 10m);
 
         var result = await sut.AdjustBalanceAsync(id,40m,"EUR",WalletBalanceStrategyNames.ForceSubtractFunds,CancellationToken.None);
@@ -64,8 +73,9 @@ public sealed class WalletServiceAdjustBalanceTests
     private static async Task<long> CreateWalletAsync(AppDbContext db, string currency, decimal balance)
     {
         var wallet = Wallet.Create(currency, balance);
-        db.Wallets.Add(wallet);
-        await db.SaveChangesAsync();
+        var repo = new WalletRepository(db);
+        repo.Add(wallet);
+        await repo.SaveChangesAsync();
         return wallet.Id;
     }
 }

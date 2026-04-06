@@ -1,20 +1,21 @@
-﻿using Microsoft.EntityFrameworkCore;
 using NoviCode.Application.Exceptions;
+using NoviCode.Application.ExchangeRates.Interfaces;
 using NoviCode.Application.Wallets.DTOs;
 using NoviCode.Application.Wallets.Interfaces;
 using NoviCode.Domain.Entities;
-using NoviCode.Infrastructure.Data;
 
-namespace NoviCode.Infrastructure.Wallets;
+namespace NoviCode.Application.Wallets;
 
 public sealed class WalletService : IWalletService
 {
-    private readonly AppDbContext _dbContext;
+    private readonly IWalletRepository _wallets;
+    private readonly ILatestEurExchangeRatesReader _exchangeRates;
     private readonly IWalletBalanceAdjustmentStrategyResolver _strategyResolver;
 
-    public WalletService(AppDbContext dbContext, IWalletBalanceAdjustmentStrategyResolver strategyResolver)
+    public WalletService(IWalletRepository wallets,ILatestEurExchangeRatesReader exchangeRates,IWalletBalanceAdjustmentStrategyResolver strategyResolver)
     {
-        _dbContext = dbContext;
+        _wallets = wallets;
+        _exchangeRates = exchangeRates;
         _strategyResolver = strategyResolver;
     }
 
@@ -22,10 +23,8 @@ public sealed class WalletService : IWalletService
     {
         var wallet = Wallet.Create(request.Currency, request.InitialBalance);
 
-        _dbContext.Wallets.Add(wallet);
-
-        
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        _wallets.Add(wallet);
+        await _wallets.SaveChangesAsync(cancellationToken);
 
         return new CreateWalletResponse
         {
@@ -37,7 +36,7 @@ public sealed class WalletService : IWalletService
 
     public async Task<GetWalletBalanceResponse> GetBalanceAsync(long walletId, string? currency, CancellationToken cancellationToken = default)
     {
-        var wallet = await _dbContext.Wallets.AsNoTracking().FirstOrDefaultAsync(x => x.Id == walletId, cancellationToken);
+        var wallet = await _wallets.GetByIdAsync(walletId, track: false, cancellationToken);
 
         if (wallet is null)
             throw new NotFoundException($"Wallet {walletId} was not found.");
@@ -66,7 +65,7 @@ public sealed class WalletService : IWalletService
             };
         }
 
-        var convertedBalance = await ConvertAsync(wallet.Balance,walletCurrency,targetCurrency,cancellationToken);
+        var convertedBalance = await ConvertAsync(wallet.Balance, walletCurrency, targetCurrency, cancellationToken);
 
         return new GetWalletBalanceResponse
         {
@@ -81,7 +80,7 @@ public sealed class WalletService : IWalletService
         if (amount <= 0)
             throw new ValidationException("Amount must be positive.");
 
-        var wallet = await _dbContext.Wallets.FirstOrDefaultAsync(x => x.Id == walletId, cancellationToken);
+        var wallet = await _wallets.GetByIdAsync(walletId, track: true, cancellationToken);
 
         if (wallet is null)
             throw new NotFoundException($"Wallet {walletId} was not found.");
@@ -97,20 +96,13 @@ public sealed class WalletService : IWalletService
         }
         else
         {
-            amountInWalletCurrency = await ConvertAsync(amount,requestCurrency,walletCurrency,cancellationToken);
+            amountInWalletCurrency = await ConvertAsync(amount, requestCurrency, walletCurrency, cancellationToken);
         }
 
         var adjustmentStrategy = _strategyResolver.Resolve(strategy);
         adjustmentStrategy.Apply(wallet, amountInWalletCurrency);
 
-        try
-        {
-            await _dbContext.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            throw new ConcurrencyException("The wallet was modified by another request. Please retry.",ex);
-        }
+        await _wallets.SaveChangesAsync(cancellationToken);
 
         return new AdjustWalletBalanceResponse
         {
@@ -120,9 +112,9 @@ public sealed class WalletService : IWalletService
         };
     }
 
-    private async Task<decimal> ConvertAsync(decimal amount,string fromCurrency,string toCurrency,CancellationToken cancellationToken)
+    private async Task<decimal> ConvertAsync(decimal amount, string fromCurrency, string toCurrency, CancellationToken cancellationToken)
     {
-        var rates = await LoadLatestEurRatesAsync(cancellationToken);
+        var rates = await _exchangeRates.GetLatestEurRatesAsync(cancellationToken);
 
         var amountInEur = ToEurAmount(amount, fromCurrency, rates);
 
@@ -146,7 +138,7 @@ public sealed class WalletService : IWalletService
         if (fromCurrency == "EUR")
             return amount;
 
-         return amount / GetEurToTargetRate(rates, fromCurrency);
+        return amount / GetEurToTargetRate(rates, fromCurrency);
     }
 
     private static decimal GetEurToTargetRate(IReadOnlyList<ExchangeRate> rates, string targetCode)
@@ -154,7 +146,8 @@ public sealed class WalletService : IWalletService
         if (targetCode == "EUR")
             return 1m;
 
-        var row = rates.FirstOrDefault(x => string.Equals(x.TargetCurrency.Trim(), targetCode, StringComparison.OrdinalIgnoreCase));
+        var row = rates.FirstOrDefault(x =>
+            string.Equals(x.TargetCurrency.Trim(), targetCode, StringComparison.OrdinalIgnoreCase));
 
         if (row is null)
             throw new ValidationException($"Missing exchange rate for {targetCode}.");
@@ -163,18 +156,5 @@ public sealed class WalletService : IWalletService
             throw new ValidationException($"Invalid exchange rate for {targetCode}.");
 
         return row.Rate;
-    }
-
-    private async Task<IReadOnlyList<ExchangeRate>> LoadLatestEurRatesAsync(CancellationToken cancellationToken)
-    {
-        if (!await _dbContext.ExchangeRates.AnyAsync(cancellationToken))
-            throw new ValidationException("No exchange rates are available.");
-
-        var latestDate = await _dbContext.ExchangeRates.MaxAsync(x => x.RateDate, cancellationToken);
-
-        return await _dbContext.ExchangeRates
-            .AsNoTracking()
-            .Where(x => x.RateDate == latestDate && x.BaseCurrency == "EUR")
-            .ToListAsync(cancellationToken);
     }
 }

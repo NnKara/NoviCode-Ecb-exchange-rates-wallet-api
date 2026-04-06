@@ -88,6 +88,6 @@ public class EcbXmlParserTests
 
         var ex = Assert.Throws<ExternalServiceException>(() => EcbXmlParser.Parse(xml));
 
-        Assert.Contains("valid cube", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("time cube", ex.Message, StringComparison.OrdinalIgnoreCase);
     }
 }

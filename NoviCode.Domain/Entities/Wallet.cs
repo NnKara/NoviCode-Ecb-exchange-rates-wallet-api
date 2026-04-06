@@ -20,6 +20,8 @@ public sealed class Wallet
         {
             Balance = initialBalance,
             Currency = NormalizeCurrencyCode(currency),
+            // Placeholder until first save; SQL Server replaces on insert. EF InMemory does not auto-fill rowversion.
+            RowVersion = new byte[] { 0, 0, 0, 0, 0, 0, 0, 1 },
         };
     }
 

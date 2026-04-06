@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using NoviCode.Application.Wallets;
 using NoviCode.Application.Wallets.DTOs;
-using NoviCode.Domain.Exceptions;
 using NoviCode.Infrastructure.Data;
+using NoviCode.Infrastructure.ExchangeRates;
+using NoviCode.Infrastructure.Repositories;
 using NoviCode.Infrastructure.Wallets;
 using Xunit;
 
@@ -23,7 +25,7 @@ public sealed class WalletServiceCreateTests
     public async Task CreateAsync_creates_wallet_and_returns_response()
     {
         await using var db = CreateInMemoryDbContext();
-        var walletService = new WalletService(db, new WalletBalanceAdjustmentStrategyResolver());
+        var walletService = new WalletService(new WalletRepository(db),new LatestEurExchangeRatesReader(db),new WalletBalanceAdjustmentStrategyResolver());
 
         var result = await walletService.CreateAsync(new CreateWalletRequest { Currency = "USD", InitialBalance = 50m });
 
