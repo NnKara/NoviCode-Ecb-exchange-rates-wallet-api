@@ -6,7 +6,7 @@ using NoviCode.Application.ExchangeRates.Interfaces;
 using NoviCode.Domain.Entities;
 using NoviCode.Infrastructure.Data;
 
-namespace NoviCode.Infrastructure.ExchangeRates;
+namespace NoviCode.Infrastructure.ExchangeRates.Caching;
 
 public sealed class CachedLatestEurExchangeRatesReader : ILatestEurExchangeRatesReader
 {

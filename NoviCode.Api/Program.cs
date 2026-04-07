@@ -34,10 +34,17 @@ builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 builder.Services.AddScoped<IWalletService, WalletService>();
 builder.Services.AddSingleton<IWalletBalanceAdjustmentStrategyResolver, WalletBalanceAdjustmentStrategyResolver>();
 
-var redisConnectionString = builder.Configuration.GetConnectionString("Redis")
-    ?? throw new InvalidOperationException("Connection string 'Redis' is not configured.");
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis") ?? "localhost:6379";
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConnectionString));
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+{
+    var options = ConfigurationOptions.Parse(redisConnectionString);
+    options.AbortOnConnectFail = false;
+    options.ConnectRetry = 2;
+
+    return ConnectionMultiplexer.Connect(options);
+});
+
 builder.Services.AddSingleton<IExchangeRatesCache, RedisExchangeRatesCache>();
 
 builder.Services.AddScoped<ILatestEurExchangeRatesReader, CachedLatestEurExchangeRatesReader>();
@@ -69,7 +76,7 @@ builder.Services.AddRateLimiter(options =>
 
         return RateLimitPartition.GetSlidingWindowLimiter(ip,_ => new SlidingWindowRateLimiterOptions
         {
-            PermitLimit = 20,
+            PermitLimit = 10,
             Window = TimeSpan.FromMinutes(1),
             SegmentsPerWindow = 6,
             QueueLimit = 0
@@ -82,7 +89,7 @@ builder.Services.AddRateLimiter(options =>
 
         return RateLimitPartition.GetSlidingWindowLimiter(ip,_ => new SlidingWindowRateLimiterOptions
         {
-            PermitLimit = 30,
+            PermitLimit = 10,
             Window = TimeSpan.FromMinutes(1),
             SegmentsPerWindow = 6,
             QueueLimit = 0
