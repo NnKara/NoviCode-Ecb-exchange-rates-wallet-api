@@ -19,17 +19,16 @@ namespace NoviCode.Infrastructure.Wallets
 
             var strategy = strategyName.Trim();
 
-            if (strategy == WalletBalanceStrategyNames.AddFunds)
+            if (string.Equals(strategy, WalletBalanceStrategyNames.AddFunds, StringComparison.OrdinalIgnoreCase))
                 return AddFunds;
 
-            if (strategy == WalletBalanceStrategyNames.SubtractFunds)
+            if (string.Equals(strategy, WalletBalanceStrategyNames.SubtractFunds, StringComparison.OrdinalIgnoreCase))
                 return SubtractFunds;
 
-            if (strategy == WalletBalanceStrategyNames.ForceSubtractFunds)
+            if (string.Equals(strategy, WalletBalanceStrategyNames.ForceSubtractFunds, StringComparison.OrdinalIgnoreCase))
                 return ForceSubtractFunds;
 
-                throw new ValidationException($"Unsupported strategy '{strategyName}'.");
+            throw new ValidationException($"Unsupported strategy '{strategyName}'.");
         }
-
     }
 }
