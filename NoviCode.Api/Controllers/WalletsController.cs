@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using NoviCode.Application.Wallets.DTOs;
 using NoviCode.Application.Wallets.Interfaces;
 
@@ -19,6 +20,7 @@ namespace NoviCode.Api.Controllers
 
 
         [HttpPost]
+        [EnableRateLimiting("wallet-create-sliding-ip")]
         [ProducesResponseType(typeof(CreateWalletResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
@@ -29,6 +31,7 @@ namespace NoviCode.Api.Controllers
         }
 
         [HttpGet("{walletId:long}")]
+        [EnableRateLimiting("wallet-read-sliding-ip")]
         [ProducesResponseType(typeof(GetWalletBalanceResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -40,6 +43,7 @@ namespace NoviCode.Api.Controllers
 
 
         [HttpPost("{walletId:long}/adjustbalance")]
+        [EnableRateLimiting("wallet-adjust-sliding-ip")]
         [ProducesResponseType(typeof(AdjustWalletBalanceResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
