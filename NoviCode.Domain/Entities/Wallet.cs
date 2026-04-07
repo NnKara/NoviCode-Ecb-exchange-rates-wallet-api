@@ -9,7 +9,7 @@ public sealed class Wallet
     public long Id { get; private set; }
     public decimal Balance { get; private set; }
     public string Currency { get; private set; } = default!;
-    public byte[] RowVersion { get; set; } = default!;
+    public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
 
     public static Wallet Create(string currency, decimal initialBalance = 0)
     {
@@ -20,8 +20,6 @@ public sealed class Wallet
         {
             Balance = initialBalance,
             Currency = NormalizeCurrencyCode(currency),
-            // Placeholder until first save; SQL Server replaces on insert. EF InMemory does not auto-fill rowversion.
-            RowVersion = new byte[] { 0, 0, 0, 0, 0, 0, 0, 1 },
         };
     }
 
