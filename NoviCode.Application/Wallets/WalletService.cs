@@ -41,7 +41,7 @@ public sealed class WalletService : IWalletService
         if (wallet is null)
             throw new NotFoundException($"Wallet {walletId} was not found.");
 
-        var walletCurrency = wallet.Currency;
+        var walletCurrency = wallet.Currency.Trim();
         
         //same currency so returns same balance in EUR
         if (string.IsNullOrWhiteSpace(currency))
