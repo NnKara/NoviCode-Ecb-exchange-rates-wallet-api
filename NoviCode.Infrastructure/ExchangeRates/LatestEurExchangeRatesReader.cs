@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NoviCode.Application.Exceptions;
+using NoviCode.Application.ExchangeRates.DTOs;
 using NoviCode.Application.ExchangeRates.Interfaces;
-using NoviCode.Domain.Entities;
 using NoviCode.Infrastructure.Data;
 
 namespace NoviCode.Infrastructure.ExchangeRates;
@@ -15,13 +15,13 @@ public sealed class LatestEurExchangeRatesReader : ILatestEurExchangeRatesReader
         _db = db;
     }
 
-    public async Task<IReadOnlyList<ExchangeRate>> GetLatestEurRatesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ExchangeRateRow>> GetLatestEurRatesAsync(CancellationToken cancellationToken = default)
     {
-        var result = await GetLatestEurRatesWithDateAsync(cancellationToken);
-        return result.Rows;
+        var (_, rows) = await GetLatestEurRatesWithDateAsync(cancellationToken);
+        return rows;
     }
 
-    public async Task<(DateOnly LatestDate, IReadOnlyList<ExchangeRate> Rows)> GetLatestEurRatesWithDateAsync(CancellationToken cancellationToken = default)
+    public async Task<(DateOnly LatestDate, IReadOnlyList<ExchangeRateRow> Rows)> GetLatestEurRatesWithDateAsync(CancellationToken cancellationToken = default)
     {
         var anyRatesExist = await _db.ExchangeRates.AnyAsync(cancellationToken);
 
@@ -32,6 +32,7 @@ public sealed class LatestEurExchangeRatesReader : ILatestEurExchangeRatesReader
 
         var rows = await _db.ExchangeRates.AsNoTracking()
             .Where(x => x.RateDate == latestDate && x.BaseCurrency == "EUR")
+            .Select(x => new ExchangeRateRow(x.RateDate, x.BaseCurrency, x.TargetCurrency, x.Rate))
             .ToListAsync(cancellationToken);
 
         return (latestDate, rows);

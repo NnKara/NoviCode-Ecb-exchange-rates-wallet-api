@@ -1,4 +1,5 @@
 using NoviCode.Application.Exceptions;
+using NoviCode.Application.ExchangeRates.DTOs;
 using NoviCode.Application.ExchangeRates.Interfaces;
 using NoviCode.Application.Wallets.DTOs;
 using NoviCode.Application.Wallets.Interfaces;
@@ -133,7 +134,7 @@ public sealed class WalletService : IWalletService
         return Math.Round(converted, 2, MidpointRounding.ToEven);
     }
 
-    private static decimal ToEurAmount(decimal amount, string fromCurrency, IReadOnlyList<ExchangeRate> rates)
+    private static decimal ToEurAmount(decimal amount, string fromCurrency, IReadOnlyList<ExchangeRateRow> rates)
     {
         if (fromCurrency == "EUR")
             return amount;
@@ -141,7 +142,7 @@ public sealed class WalletService : IWalletService
         return amount / GetEurToTargetRate(rates, fromCurrency);
     }
 
-    private static decimal GetEurToTargetRate(IReadOnlyList<ExchangeRate> rates, string targetCode)
+    private static decimal GetEurToTargetRate(IReadOnlyList<ExchangeRateRow> rates, string targetCode)
     {
         if (targetCode == "EUR")
             return 1m;

@@ -1,8 +1,8 @@
-using NoviCode.Domain.Entities;
+using NoviCode.Application.ExchangeRates.DTOs;
 
 namespace NoviCode.Application.ExchangeRates.Interfaces;
 
 public interface ILatestEurExchangeRatesReader
 {
-    Task<IReadOnlyList<ExchangeRate>> GetLatestEurRatesAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<ExchangeRateRow>> GetLatestEurRatesAsync(CancellationToken cancellationToken = default);
 }
