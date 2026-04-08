@@ -7,6 +7,7 @@ using NoviCode.Application.Wallets.Interfaces;
 using NoviCode.Infrastructure.Data;
 using NoviCode.Infrastructure.ExchangeRates;
 using NoviCode.Infrastructure.ExchangeRates.Caching;
+using NoviCode.Infrastructure.Options;
 using NoviCode.Infrastructure.Repositories;
 using NoviCode.Infrastructure.Wallets;
 using StackExchange.Redis;
@@ -17,7 +18,14 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<AppDbContext>(options => options.UseSqlServer(configuration.GetConnectionString("ExchangeRateDb")));
+        var exchangeRateDb = configuration.GetConnectionString("ExchangeRateDb");
+
+        if (string.IsNullOrWhiteSpace(exchangeRateDb))
+            throw new InvalidOperationException("Connection string 'ExchangeRateDb' is missing.");
+
+        services.AddDbContext<AppDbContext>(opts => opts.UseSqlServer(exchangeRateDb));
+
+        services.Configure<DatabaseOptions>(opts => opts.ExchangeRateDb = exchangeRateDb);
 
         services.AddScoped<IExchangeRatesBulkWriter, ExchangeRatesBulkWriter>();
         services.AddScoped<IWalletRepository, WalletRepository>();

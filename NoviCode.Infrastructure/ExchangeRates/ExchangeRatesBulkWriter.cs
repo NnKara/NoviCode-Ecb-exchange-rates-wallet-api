@@ -1,23 +1,23 @@
 ﻿using System.Data;
 using System.Text;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using NoviCode.Application.ExchangeRates.DTOs;
 using NoviCode.Application.ExchangeRates.Interfaces;
+using NoviCode.Infrastructure.Options;
 
 namespace NoviCode.Infrastructure.ExchangeRates;
 
 public sealed class ExchangeRatesBulkWriter : IExchangeRatesBulkWriter
 {
-    //batch size per merge
+
     private const int MaxRowsPerMerge = 400;
 
     private readonly string _connectionString;
 
-    public ExchangeRatesBulkWriter(IConfiguration configuration)
+    public ExchangeRatesBulkWriter(IOptions<DatabaseOptions> options)
     {
-        _connectionString = configuration.GetConnectionString("ExchangeRateDb")
-            ?? throw new InvalidOperationException("Connection string 'ExchangeRateDb' is missing.");
+        _connectionString = options.Value.ExchangeRateDb;
     }
 
     public async Task MergeAsync(IReadOnlyList<ExchangeRateRow> rows, CancellationToken cancellationToken = default)
