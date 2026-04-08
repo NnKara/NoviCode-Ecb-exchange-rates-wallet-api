@@ -53,6 +53,7 @@ public sealed class ExchangeRatesSyncJob : IJob
         catch (Exception ex)
         {
             _logger.LogError(ex, "ECB exchange rates sync failed.");
+            throw;
         }
     }
 }
