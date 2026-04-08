@@ -3,6 +3,7 @@ using NoviCode.Application.Exceptions;
 using NoviCode.Application.ExchangeRates.Caching;
 using NoviCode.Domain.Entities;
 using NoviCode.Infrastructure.Data;
+using NoviCode.Infrastructure.ExchangeRates;
 using NoviCode.Infrastructure.ExchangeRates.Caching;
 using Xunit;
 
@@ -37,7 +38,7 @@ public sealed class CachedLatestEurExchangeRatesReaderFallbackTests
             }
         };
 
-        var reader = new CachedLatestEurExchangeRatesReader(db, cache);
+        var reader = new CachedLatestEurExchangeRatesReader(new LatestEurExchangeRatesReader(db), cache);
 
         var result = await reader.GetLatestEurRatesAsync();
 
@@ -71,7 +72,7 @@ public sealed class CachedLatestEurExchangeRatesReaderFallbackTests
             }
         };
 
-        var reader = new CachedLatestEurExchangeRatesReader(db, cache);
+        var reader = new CachedLatestEurExchangeRatesReader(new LatestEurExchangeRatesReader(db), cache);
 
         var result = await reader.GetLatestEurRatesAsync();
 
@@ -87,7 +88,7 @@ public sealed class CachedLatestEurExchangeRatesReaderFallbackTests
     {
         await using var db = CreateInMemoryDbContext();
         var cache = new FakeCache { SnapshotToReturn = null };
-        var reader = new CachedLatestEurExchangeRatesReader(db, cache);
+        var reader = new CachedLatestEurExchangeRatesReader(new LatestEurExchangeRatesReader(db), cache);
 
         var ex = await Assert.ThrowsAsync<ValidationException>(() => reader.GetLatestEurRatesAsync());
         Assert.Contains("No exchange rates", ex.Message, StringComparison.OrdinalIgnoreCase);

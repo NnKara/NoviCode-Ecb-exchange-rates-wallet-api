@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<IExchangeRatesCache, RedisExchangeRatesCache>();
+        services.AddScoped<LatestEurExchangeRatesReader>();
         services.AddScoped<ILatestEurExchangeRatesReader, CachedLatestEurExchangeRatesReader>();
 
         return services;

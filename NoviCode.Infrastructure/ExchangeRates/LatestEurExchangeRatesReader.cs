@@ -17,6 +17,12 @@ public sealed class LatestEurExchangeRatesReader : ILatestEurExchangeRatesReader
 
     public async Task<IReadOnlyList<ExchangeRate>> GetLatestEurRatesAsync(CancellationToken cancellationToken = default)
     {
+        var result = await GetLatestEurRatesWithDateAsync(cancellationToken);
+        return result.Rows;
+    }
+
+    public async Task<(DateOnly LatestDate, IReadOnlyList<ExchangeRate> Rows)> GetLatestEurRatesWithDateAsync(CancellationToken cancellationToken = default)
+    {
         var anyRatesExist = await _db.ExchangeRates.AnyAsync(cancellationToken);
 
         if (!anyRatesExist)
@@ -24,8 +30,10 @@ public sealed class LatestEurExchangeRatesReader : ILatestEurExchangeRatesReader
 
         var latestDate = await _db.ExchangeRates.MaxAsync(x => x.RateDate, cancellationToken);
 
-        return await _db.ExchangeRates.AsNoTracking()
+        var rows = await _db.ExchangeRates.AsNoTracking()
             .Where(x => x.RateDate == latestDate && x.BaseCurrency == "EUR")
             .ToListAsync(cancellationToken);
+
+        return (latestDate, rows);
     }
 }

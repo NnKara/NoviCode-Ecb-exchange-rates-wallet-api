@@ -47,7 +47,7 @@ namespace NoviCode.Api.Controllers
         [ProducesResponseType(typeof(AdjustWalletBalanceResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<AdjustWalletBalanceResponse>> AdjustBalance([FromRoute] long walletId,[FromQuery] decimal amount,
+        public async Task<ActionResult<AdjustWalletBalanceResponse>> AdjustBalance(long walletId,[FromQuery] decimal amount,
                                                                                    [FromQuery] string strategy,
                                                                                    [FromQuery] string currency,
                                                                                    CancellationToken cancellationToken)

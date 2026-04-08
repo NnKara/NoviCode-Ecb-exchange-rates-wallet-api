@@ -43,7 +43,6 @@ public sealed class WalletService : IWalletService
 
         var walletCurrency = wallet.Currency.Trim();
         
-        //same currency so returns same balance in EUR
         if (string.IsNullOrWhiteSpace(currency))
         {
             return new GetWalletBalanceResponse
@@ -56,7 +55,6 @@ public sealed class WalletService : IWalletService
 
         var targetCurrency = Wallet.NormalizeCurrencyCode(currency);
 
-        //if not null currency but same requested currency return same balance
         if (targetCurrency == walletCurrency)
         {
             return new GetWalletBalanceResponse

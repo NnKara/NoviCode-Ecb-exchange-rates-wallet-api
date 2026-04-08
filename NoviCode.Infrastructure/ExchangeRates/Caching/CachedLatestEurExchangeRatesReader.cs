@@ -1,21 +1,19 @@
 ﻿using System.Globalization;
-using Microsoft.EntityFrameworkCore;
-using NoviCode.Application.Exceptions;
 using NoviCode.Application.ExchangeRates.Caching;
 using NoviCode.Application.ExchangeRates.Interfaces;
 using NoviCode.Domain.Entities;
-using NoviCode.Infrastructure.Data;
+using NoviCode.Infrastructure.ExchangeRates;
 
 namespace NoviCode.Infrastructure.ExchangeRates.Caching;
 
 public sealed class CachedLatestEurExchangeRatesReader : ILatestEurExchangeRatesReader
 {
-    private readonly AppDbContext _db;
+    private readonly LatestEurExchangeRatesReader _latestFromDb;
     private readonly IExchangeRatesCache _cache;
 
-    public CachedLatestEurExchangeRatesReader(AppDbContext db, IExchangeRatesCache cache)
+    public CachedLatestEurExchangeRatesReader(LatestEurExchangeRatesReader latestFromDb, IExchangeRatesCache cache)
     {
-        _db = db;
+        _latestFromDb = latestFromDb;
         _cache = cache;
     }
 
@@ -40,16 +38,7 @@ public sealed class CachedLatestEurExchangeRatesReader : ILatestEurExchangeRates
                 }).ToList();
         }
 
-        var anyRatesExist = await _db.ExchangeRates.AnyAsync(cancellationToken);
-
-        if (!anyRatesExist)
-            throw new ValidationException("No exchange rates are available.");
-
-        var latestDate = await _db.ExchangeRates.MaxAsync(x => x.RateDate, cancellationToken);
-
-        var rows = await _db.ExchangeRates.AsNoTracking()
-            .Where(x => x.RateDate == latestDate && x.BaseCurrency == "EUR")
-            .ToListAsync(cancellationToken);
+        var (latestDate, rows) = await _latestFromDb.GetLatestEurRatesWithDateAsync(cancellationToken);
 
         var snapshotFromDb = new LatestRatesSnapshotDto
         {
